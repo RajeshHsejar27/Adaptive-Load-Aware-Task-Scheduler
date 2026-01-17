@@ -18,3 +18,4 @@ scrape_configs:
 # prometheus --config.file=observability/prometheus.yml
 # run this if prometheus is located elsewhere:
 # ./prometheus --config.file="C:\Projects\Software\Adaptive task scheduler\adaptive-task-scheduler\observability\prometheus.yml"
+# in windows: prometheus.exe --config.file="C:\Projects\Software\Adaptive task scheduler\adaptive-task-scheduler\observability\prometheus.yml"
