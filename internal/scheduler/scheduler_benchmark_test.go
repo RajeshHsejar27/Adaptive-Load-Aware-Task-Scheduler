@@ -40,7 +40,22 @@ func BenchmarkRoundRobin(b *testing.B) {
 	}
 }
 
-// Benchmarks compare adaptive scheduling vs round-robin
+func BenchmarkLeastLoaded(b *testing.B) {
+	w1 := worker.NewWorker("l1")
+	w2 := worker.NewWorker("l2")
+
+	s := NewLeastLoadedScheduler([]*worker.Worker{w1, w2})
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		s.Schedule(func() {
+			task.CPUHeavyWork(1_000_000)
+		})
+	}
+}
+
+// Benchmarks compare adaptive scheduling vs round-robin vs least-loaded scheduling,
 // using CPU-intensive workloads to highlight load imbalance effects.
 
 // to run benchmark
