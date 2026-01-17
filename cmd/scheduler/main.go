@@ -50,31 +50,67 @@ func main() {
 	)
 
 	// -------------------------------
+	// Least-Loaded Scheduler setup
+	// -------------------------------
+	lw1 := worker.NewWorker("l-1")
+	lw2 := worker.NewWorker("l-2")
+
+	leastLoaded := scheduler.NewLeastLoadedScheduler(
+		[]*worker.Worker{lw1, lw2},
+	)
+
+	// -------------------------------
 	// Shared workload generator
 	// -------------------------------
 	go func() {
 		for i := 0; ; i++ {
 			i := i
 
+			// work := func() {
+			// 	if i%3 == 0 {
+			// 		// task.CPUHeavyWork(50_000_000)
+			// 		task.CPUHeavyWork(150_000_000)
+
+			// 	} else {
+			// 		time.Sleep(100 * time.Millisecond)
+			// 	}
+			// }
+
 			work := func() {
+				// Every 5th task is VERY heavy
+				if i%5 == 0 {
+					task.CPUHeavyWork(300_000_000)
+					return
+				}
+
+				// Normal tasks
 				if i%3 == 0 {
-					task.CPUHeavyWork(50_000_000) // CPU spike
+					task.CPUHeavyWork(150_000_000)
 				} else {
 					time.Sleep(100 * time.Millisecond)
 				}
 			}
 
-			// Adaptive scheduler
+			// Adaptive (worker + latency metrics handled inside scheduler)
 			adaptive.Schedule(func() {
 				work()
 			})
 
-			// Round-robin scheduler
+			// Round-Robin (latency only)
 			rr.Schedule(func() {
 				start := time.Now()
 				work()
 				metrics.TaskLatency.
 					WithLabelValues("round_robin").
+					Observe(time.Since(start).Seconds())
+			})
+
+			// Least-Loaded (latency only)
+			leastLoaded.Schedule(func() {
+				start := time.Now()
+				work()
+				metrics.TaskLatency.
+					WithLabelValues("least_loaded").
 					Observe(time.Since(start).Seconds())
 			})
 
